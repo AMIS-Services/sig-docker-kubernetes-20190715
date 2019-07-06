@@ -1,0 +1,113 @@
+====================================
+MySQL and Wordpress
+# note: using Wordpress 5.7 because of --default-authentication-plugin=mysql_native_password (see:  https://github.com/docker-library/wordpress/issues/313 )
+# Create Docker Network
+
+docker network create wordpress-network
+
+
+# create a data volume for MySQL
+
+docker volume create mysql-volume
+docker volume ls
+# check contents of volumes
+docker volume inspect mysql-volume
+
+# Run MySQL
+
+docker run --name wordpressdb --network='wordpress-network' -v mysql-volume:/var/lib/mysql -e MYSQL_DATABASE=wordpressdb -e MYSQL_USER=wp-user -e MYSQL_PASSWORD=wp-password -e MYSQL_RANDOM_ROOT_PASSWORD=yes -d mysql:5.7
+      
+# Run MySQL client
+
+docker run -it --network wordpress-network --rm mysql:5.7 mysql -hwordpressdb -uwp-user -p
+
+show databases;
+USE wordpressdb
+show tables;
+
+CREATE TABLE cats
+(
+  id              INT unsigned NOT NULL AUTO_INCREMENT, # Unique ID for the record
+  name            VARCHAR(150) NOT NULL,                # Name of the cat
+  owner           VARCHAR(150) NOT NULL,                # Owner of the cat
+  birth           DATE NOT NULL,                        # Birthday of the cat
+  PRIMARY KEY     (id)                                  # Make the id the primary key
+);
+show tables;
+DESCRIBE cats;
+
+INSERT INTO cats ( name, owner, birth) VALUES
+  ( 'Sandy', 'Lennon', '2015-01-03' ),
+  ( 'Cookie', 'Casey', '2013-11-13' ),
+  ( 'Charlie', 'River', '2016-05-21' );
+
+SELECT * FROM cats;  
+
+
+docker volume inspect mysql-volume
+
+# Run Wordpress
+
+docker run --name my-wordpress --network wordpress-network -e WORDPRESS_DB_USER=wp-user -e WORDPRESS_DB_PASSWORD=wp-password -e WORDPRESS_DB_NAME=wordpressdb -e WORDPRESS_DB_HOST=wordpressdb  -p 8777:80 -d wordpress  
+
+# try if mysql:8 could work with:
+# docker run --name my-wordpress --network wordpress-network -e WORDPRESS_DB_USER=wp-user -e WORDPRESS_DB_PASSWORD=wp-password -e WORDPRESS_DB_NAME=wordpressdb -e WORDPRESS_DB_HOST=wordpressdb  -p 8777:80 -d wordpress  --default-authentication-plugin=mysql_native_password 
+
+docker logs my-wordpress --follow
+
+
+# Edit in Wordpress
+
+http://192.168.188.142:8777
+
+# step through installation
+# show logging
+
+# create 2nd article
+
+# Show MySQL content
+docker run -it --network wordpress-network --rm mysql:5.7 mysql -hwordpressdb -uwp-user -p
+
+show databases;
+USE wordpressdb
+show tables;
+
+select post_date, post_title from wp_posts;
+
+
+# Stop MySQL container
+docker stop wordpressdb
+
+# Access Wordpress: failure
+http://192.168.188.142:8777
+
+# Start MySQL container
+docker start wordpressdb
+
+# Access Wordpress:success
+http://192.168.188.142:8777
+
+
+# Stop and Remove MySQL container
+docker stop wordpressdb
+docker rm wordpressdb
+
+# Access Wordpress: failure
+http://192.168.188.142:8777
+
+
+# Run clean MySQL image - against the same Docker Volume (which has all the data)
+docker run --name wordpressdb --network='wordpress-network' -v mysql-volume:/var/lib/mysql  -e MYSQL_DATABASE=wordpressdb -e MYSQL_USER=wp-user -e MYSQL_PASSWORD=wp-password -e MYSQL_RANDOM_ROOT_PASSWORD=yes -d mysql:5.7
+
+docker run -it --network wordpress-network --rm mysql:5.7 mysql -hwordpressdb -uwp-user -p
+
+show databases;
+USE wordpressdb
+show tables;
+
+select post_date, post_title from wp_posts;
+
+# Access Wordpress: success with the original content
+
+# The data was secure in the Docker Volume (mapped to a directory on the host)
+# both containers could safely be deleted and freshly started from the generic container images
