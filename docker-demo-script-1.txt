@@ -2,7 +2,7 @@ Open Docker Playground at: https://www.katacoda.com/courses/docker/deploying-fir
 
 (or a local VM with Linux and Docker host)
 
-docker run -d -p 8080:80 --name mynginx nginx
+docker run -d -p 8080:80 -e MY_SPECIAL_VAR='a great new day'  --name mynginx nginx
 
 #open browser  (locally in VM)
 http://192.168.188.142:8080/
@@ -33,12 +33,24 @@ mv i.html index.html
 # reload in browser
 http://192.168.188.142:8080
 
+# check environment variable
+
+echo $MY_SPECIAL_VAR
+
 # check memory for container: 
 cat /proc/meminfo
 
 # check filesystem for container
 df -Th
 
+#exit container
+exit
+
+#show resource usage by container
+docker stats mynginx
+
+# show differences in file system since container create:
+docker diff mynginx
 
 # run a second container
 docker run -d -p 8090:80 --name mynginx2 nginx
@@ -49,7 +61,7 @@ docker ps
 # copy index.html from container to docker host
 docker cp mynginx2:/usr/share/nginx/html/index.html .
 
-# manipulate local index.html
+# manipulate local index.html on Docker host 
 
 #copy back to container
 docker cp ./index.html mynginx2:/usr/share/nginx/html
@@ -74,7 +86,7 @@ ls -R
 # show layers in image
 docker history nginx
 
-# restart container; show that changed file is still around
+# restart container; show that changed index.html file is still around
 docker start mynginx2
 
 #show in browser at port 8090
@@ -118,6 +130,10 @@ docker stop mynginx2
 # run a new nginx contain instance, this time based on the new custom image (based on the state of mynginx2)
 docker run -d -p 8210:80 --name my-own-nginx my-nginx-image:1.0
 
+# show differences in file system since container create:
+docker diff my-own-nginx
+
+
 # the image my-nginx-image:1.0 can be pushed and shared
 sudo docker login
 
@@ -129,7 +145,8 @@ docker push lucasjellema/my-nginx-image:1.0
 
 # on Katacoda: https://www.katacoda.com/courses/docker/playground
 
-docker run -p 8111:80 lucasjellema/my-nginx-image:1.0
+docker run --name new-nginx  -p 8111:80 lucasjellema/my-nginx-image:1.0
+
 
 # then open nginx in new browser window: https://2886795283-8111-kitek05.environments.katacoda.com/
 

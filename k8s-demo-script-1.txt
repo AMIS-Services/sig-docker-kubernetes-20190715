@@ -1,0 +1,110 @@
+## Environment
+for example:
+
+- install minikube
+- minikube start
+- minikube ip
+- minikube dashboard
+
+Install Weavescope - see bottom of this document
+
+- in a second commandline window
+- kubectl version
+
+
+## run nginx on Kubernetes
+
+kubectl run mynginx --image=nginx --port=80 --env="MY_SPECIAL_VAR=a great new day"
+
+kubectl get pods
+
+kubectl exec -ti nginx-<POD_ID> -- /bin/sh  
+
+
+# show in dashboard
+
+# how to invoke from outside cluster? create service for deployment (as type NodePort) to create a Service for the Pod, accessible from outside the cluster
+
+kubectl expose pod  mynginx-5c59c64b4b-lhhwr  --port=80 --type=NodePort
+
+kubectl get svc
+
+curl <minikube ip>:<svc nodeport>
+
+kubectl logs  mynginx-<POD_ID> --follow
+
+# access NGINX from browser at <minikube ip>:<svc nodeport>
+
+
+## Kubectl Apply, YAML files, namespace
+
+kubectl create namespace nginx
+
+cd C:\research\2019-15juli-docker-kubernetes-amis\sig-docker-kubernetes-20190715\k8s\nginx
+
+kubectl apply -f .\deployment.yaml
+
+kubectl get all -n=nginx
+
+# create service to expose deployment
+kubectl apply -f .\service.yaml
+
+# copy file to one of the pods
+kubectl get pods -n=nginx
+kubectl cp ./index.html mynginx-547b97445f-4v5xc:/usr/share/nginx/html -n=nginx
+
+
+## create persistent volume (local on Minikube) and persistent volume claim
+
+kubectl apply -f .\storage.yaml
+
+## check the created storage in Minikube VM:
+minikube ssh 
+cd /tmp/hostpath-provisioner
+ls -l
+## check the nmost recently created directory
+
+
+## then mount the PVC inside the NGINX Pods 
+kubectl apply -f  deployment-v2.yaml
+
+## at this point, NGINX serves HTML resources that are located on a newly created PV, mounted at /usr/share/nginx/html
+
+## copy file to the mount point:
+kubectl cp ./index.html mynginx-7b87c957dd-br2kr:/usr/share/nginx/html -n=nginx
+
+## this file is now part of the persistent volume, accessible from all pods in deployment and will survive Pod (and Deployment) recreation
+kubectl delete deployment mynginx -n=nginx
+
+## recreate deployment and check if nginx serves the custom index.html
+kubectl apply -f  deployment-v2.yaml
+
+
+## WeaveScope
+
+# Visualizing Kubernetes Resources
+WeaveScope is a tool that provides you with insight into the contents of the Kubernetes cluster. It shows listings and graphical visualizations of different types of resources and their interdependencies. Details can be learned, incuding memory usage and CPU usage - per container and for the entire cluster. 
+
+Open a new Terminal window and execute these commands:
+```
+git clone https://github.com/weaveworks/scope
+
+kubectl apply -f scope/examples/k8s
+```
+
+This will create a namespace called weave with several deployments and pods. Note: if you get the error: “Error from server (NotFound): error when creating "examples/k8s/ds.yaml": namespaces "weave" not found”, then simply run the command again. The namespace is created later than the deployment and deamonset, the second time round it already exists.
+
+The next command will instruct kubectl to change the type of the service `weave-scope-app` to NodePort which will make it accessible on a port that we can easily inspect:
+
+```
+kubectl patch svc weave-scope-app -p '{"spec": {"type": "NodePort"}}' -n weave
+```
+
+Retrieve a list of all services and their ports with this command:
+```
+kubectl get svc -n weave
+```
+
+ This should give you the port at which you can access WeaveScope.
+
+Click on the plus icon to open a new window on Host 1. Enter the node port for the weave-scope-app service. You should now see the WeaveScope user interface. Click for example on *processes* .  

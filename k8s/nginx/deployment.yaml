@@ -1,0 +1,26 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: mynginx
+  namespace: nginx
+spec:
+  replicas: 3 # tells deployment to run 3 pod matching the template
+  template: # create pods using pod definition in this template
+    metadata:
+      #  the name for the pods is not included in the meta data as a unique name is
+      #  generated from the deployment name
+      labels:
+        app: mynginx
+    spec:
+      containers:
+      - name: mynginx
+        # get latest version of image
+        image: nginx
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: MY_SPECIAL_VAR
+          value: "a great new day"
+        ports:
+        # containerPort is the port exposed by the container (where NGINX is listening for http requests)
+        - containerPort: 80
+          name: nginx-web-port

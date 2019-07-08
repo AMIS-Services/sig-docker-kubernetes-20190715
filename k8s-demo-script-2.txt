@@ -1,0 +1,32 @@
+## Install Wordpress including MySQL on Persistent Volume
+
+from directory k8s/wordpress:
+
+kubectl create namespace wordpress-space
+
+kubectl apply -f .\secrets.yaml
+kubectl apply -f .\mysql-deployment.yaml
+kubectl apply -f .\wordpress-deployment.yaml
+
+# verify the Persistent volumes that were created
+kubectl get pv
+
+# check out the Persistent volume claims
+kubectl get pvc -n=wordpress-space
+
+# get a list of services
+kubectl get svc -n=wordpress-space
+
+# using the port assigned to wordpress services, open wordpress in browser
+# - install wordpress
+# - create one article
+# - delete at least mysql-deployment (or both deployments)
+
+kubectl delete deployment wordpress-mysql -n=wordpress-space
+
+# verify that wordpress site is unreachable
+
+# recreate mysql deployment
+kubectl apply -f .\mysql-deployment.yaml
+
+# show that site is available - and has the original contents

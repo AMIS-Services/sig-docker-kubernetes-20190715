@@ -1,0 +1,18 @@
+Based on https://www.digitalocean.com/community/tutorials/how-to-build-a-node-js-application-with-docker
+
+In Docker Host:
+
+git clone https://github.com/AMIS-Services/sig-docker-kubernetes-20190715
+cd sig-docker-kubernetes-20190715/build/node-project
+
+docker build -t nodejs-image-demo .
+
+docker images
+
+docker run --name my-node-app1 -p 8300:8080 -d nodejs-image-demo
+
+docker run --name my-node-app2 -p 8301:8080 -d nodejs-image-demo
+
+docker tag nodejs-image-demo lucasjellema/sharks-app:1.0
+docker push lucasjellema/sharks-app:1.0
+
