@@ -1,0 +1,29 @@
+## Run custom Node application
+## Add health probes
+## Run rolling upgrade
+## Leverage ConfigMap
+
+from directory k8s/sharks-on-node:
+
+kubectl create namespace sharks
+
+kubectl create configmap sharks-config --from-literal=MY_SPECIAL_KEY='a great new day' --from-literal=OTHER_KEY=42  -n=sharks
+
+kubectl apply -f .\deployment.yaml
+kubectl apply -f .\service.yaml
+
+kubectl get svc -n=sharks
+
+# check that the sharks application is live and can be accessed from the browser or using curl
+# verify that the environment variable $MY_SPECIAL_VAR has been set - with the value specified in the ConfigMap
+# this can be done using kubectl exec, from the K8S Dashboard, from WeaveScope
+
+# define health probes
+kubectl apply -f .\deployment_v2.yaml
+
+# note: the application does not currently support these probes, so the new container will never be healthy and the upgrade is stopped
+kubectl describe deployment sharks-app -n=sharks
+
+# and check in Dashboard
+
+

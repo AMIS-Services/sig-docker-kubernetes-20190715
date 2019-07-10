@@ -1,0 +1,45 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: sharks-app
+  namespace: sharks
+spec:
+  replicas: 3 # tells deployment to run 3 pod matching the template
+  template: # create pods using pod definition in this template
+    metadata:
+      #  the name for the pods is not included in the meta data as a unique name is
+      #  generated from the deployment name
+      labels:
+        app: sharks
+    spec:
+      containers:
+      - name: sharks-app
+        # get latest version of image
+        image: lucasjellema/sharks-app:1.0
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: MY_SPECIAL_VAR
+          valueFrom:
+            configMapKeyRef:
+              # The ConfigMap containing the value you want to assign to MY_SPECIAL_VAR
+              name: sharks-config
+              # Specify the key associated with the value
+              key: MY_SPECIAL_KEY
+        ports:
+        # containerPort is the port exposed by the container (where Node is listening for http requests)
+        - containerPort: 8080
+          name: sharks-app-port
+        # check if the container is healthy (and if not: should be restarted)  
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        # check if the container is ready for receiving traffic (and if not, should not be sent requests)
+        readinessProbe:
+          httpGet:
+            path: /readie
+            port: 8080
+          initialDelaySeconds: 25
+          periodSeconds: 5

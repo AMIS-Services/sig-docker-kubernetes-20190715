@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+    name: sharks-service
+    namespace: sharks
+    labels:
+       app: sharks-svc 
+spec:
+  ports:
+    # The port that this service should serve on.
+    - port: 7890
+      # port listened at inside the container
+      targetPort: sharks-app-port
+  # Label keys and values that must match in order to receive traffic for this service.
+  selector:
+    app: sharks
+  sessionAffinity: None
+  type: NodePort
