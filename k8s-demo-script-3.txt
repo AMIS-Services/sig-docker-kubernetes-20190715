@@ -18,6 +18,7 @@ kubectl get svc -n=sharks
 # verify that the environment variable $MY_SPECIAL_VAR has been set - with the value specified in the ConfigMap
 # this can be done using kubectl exec, from the K8S Dashboard, from WeaveScope
 
+
 # define health probes
 kubectl apply -f .\deployment_v2.yaml
 
@@ -25,5 +26,30 @@ kubectl apply -f .\deployment_v2.yaml
 kubectl describe deployment sharks-app -n=sharks
 
 # and check in Dashboard
+# deployment has two replicacontrollers for the two versions of the Deployment; the original one has three Pods, the new one just one (in an unhealthy state)
+
+# build the new version of the Sharks on Node App image 
+# with support for health probes 
+
+docker build -t nodejs-image-demo-v2 .
+docker images
+
+docker run --name my-node-app-v2 -p 8302:8080 -d nodejs-image-demo-v2
+
+docker tag nodejs-image-demo-v2 lucasjellema/sharks-app:2.0
+docker push lucasjellema/sharks-app:2.0
+
+# deployment_v3 uses the new image that does provide the health probes; likely this upgrade is more successful
+kubectl apply -f .\deployment_v3.yaml
 
 
+kubectl describe deployment sharks-app -n=sharks
+
+# exec into one of the containers
+# do a ps -ef
+# kill the node application's process
+# check the status of the deployment - for example in the K8S Dashboard or with
+
+kubectl describe deployment sharks-app -n=sharks
+
+# since the probes are failing, a new Pod is started and the failing one removed

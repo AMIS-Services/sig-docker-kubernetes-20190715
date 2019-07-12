@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: sharks-app
-        # get latest version of image
+        # get version 1.0 of image
         image: lucasjellema/sharks-app:1.0
         imagePullPolicy: IfNotPresent
         env:
@@ -25,6 +25,13 @@ spec:
               name: sharks-config
               # Specify the key associated with the value
               key: MY_SPECIAL_KEY
+        - name: THE_ANSWER
+          valueFrom:
+            configMapKeyRef:
+              # The ConfigMap containing the value you want to assign to MY_SPECIAL_VAR
+              name: sharks-config
+              # Specify the key associated with the value
+              key: OTHER_KEY
         ports:
         # containerPort is the port exposed by the container (where Node is listening for http requests)
         - containerPort: 8080

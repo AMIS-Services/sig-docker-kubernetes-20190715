@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sharks-config
+  namespace: sharks
+data:
+  MY_SPECIAL_VAR: "a great new day"
+  OTHER_KEY: 42

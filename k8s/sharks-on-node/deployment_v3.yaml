@@ -14,8 +14,8 @@ spec:
     spec:
       containers:
       - name: sharks-app
-        # get version 1.0 of image
-        image: lucasjellema/sharks-app:1.0
+        # get version 2.0 of image
+        image: lucasjellema/sharks-app:2.0
         imagePullPolicy: IfNotPresent
         env:
         - name: MY_SPECIAL_VAR
@@ -25,7 +25,28 @@ spec:
               name: sharks-config
               # Specify the key associated with the value
               key: MY_SPECIAL_KEY
+        - name: THE_ANSWER
+          valueFrom:
+            configMapKeyRef:
+              # The ConfigMap containing the value you want to assign to MY_SPECIAL_VAR
+              name: sharks-config
+              # Specify the key associated with the value
+              key: OTHER_KEY
         ports:
         # containerPort is the port exposed by the container (where Node is listening for http requests)
         - containerPort: 8080
           name: sharks-app-port
+        # check if the container is healthy (and if not: should be restarted)  
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        # check if the container is ready for receiving traffic (and if not, should not be sent requests)
+        readinessProbe:
+          httpGet:
+            path: /readie
+            port: 8080
+          initialDelaySeconds: 25
+          periodSeconds: 5
